@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0A0E14">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>FIELD OPS · Rob Cordero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Stencil+One&family=Archivo:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0A0E14;
+    --ink-2: #11161F;
+    --paper: #131A24;
+    --paper-hi: #1A2331;
+    --line: #1F2A3A;
+    --line-hi: #2E3B4F;
+    --text: #E8EBF0;
+    --text-mid: #98A0AE;
+    --text-dim: #5C6573;
+    --hi-orange: #FF6B1A;     /* ANSI safety orange — RROFLLC brand */
+    --hi-yellow: #FFC700;     /* hi-vis safety yellow */
+    --caution: #E63946;
+    --go: #06D6A0;
+    --info: #4895EF;
+    --orange-glow: rgba(255,107,26,0.12);
+    --yellow-glow: rgba(255,199,0,0.10);
+    --caution-glow: rgba(230,57,70,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    background: var(--ink);
+    color: var(--text);
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    min-height: 100vh;
+    padding-bottom: env(safe-area-inset-bottom);
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Schematic graph-paper background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at center, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 22px 22px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  /* subtle vignette */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at top, transparent 50%, rgba(0,0,0,0.5));
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  main {
+    position: relative;
+    z-index: 1;
+    padding: 0 16px 80px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* === STICKY HEADER === */
+  header.brand {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: linear-gradient(180deg, var(--ink) 70%, rgba(10,14,20,0.85));
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    padding: 16px 16px 0;
+    margin: 0 -16px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .brand-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 12px;
+  }
+  .brand-mark {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand-glyph {
+    width: 32px;
+    height: 32px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .brand-glyph::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--hi-orange);
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  }
+  .brand-glyph::after {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    background: var(--ink);
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  }
+  .brand-title {
+    font-family: 'Saira Stencil One', sans-serif;
+    font-size: 18px;
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+  .brand-title .accent { color: var(--hi-orange); }
+  .brand-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 2px;
+    letter-spacing: 0.04em;
+  }
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--go);
+    box-shadow: 0 0 0 0 rgba(6,214,160,0.7);
+    animation: pulse 2.4s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(6,214,160,0.6); }
+    70% { box-shadow: 0 0 0 8px rgba(6,214,160,0); }
+    100% { box-shadow: 0 0 0 0 rgba(6,214,160,0); }
+  }
+  .live-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-mid);
+  }
+
+  /* === TABS === */
+  .tabs {
+    display: flex;
+    gap: 0;
+    padding-bottom: 0;
+    margin: 0 -16px;
+    padding: 0 16px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex: 1;
+    min-width: max-content;
+    padding: 14px 18px;
+    font-family: 'Saira Stencil One', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    background: none;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: all 150ms;
+    text-transform: uppercase;
+    white-space: nowrap;
+    position: relative;
+    user-select: none;
+  }
+  .tab:hover { color: var(--text-mid); }
+  .tab.active {
+    color: var(--hi-orange);
+    border-bottom-color: var(--hi-orange);
+  }
+  .tab-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    background: var(--line);
+    color: var(--text-mid);
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+    font-weight: 500;
+  }
+  .tab.active .tab-count {
+    background: var(--orange-glow);
+    color: var(--hi-orange);
+  }
+
+  /* === PANEL === */
+  .panel { display: none; padding-top: 18px; }
+  .panel.active {
+    display: block;
+    animation: fadeIn 240ms ease-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* === WEEK STRIP === */
+  .week-strip {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(126px, 1fr));
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+    margin-bottom: 22px;
+    scrollbar-width: none;
+  }
+  .week-strip::-webkit-scrollbar { display: none; }
+  .day {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px 11px;
+    min-height: 124px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+  .day.past { opacity: 0.55; }
+  .day.today {
+    border-color: var(--hi-orange);
+    background: linear-gradient(155deg, var(--paper) 0%, rgba(255,107,26,0.07) 100%);
+  }
+  .day.today::before {
+    content: 'TODAY';
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 3px 8px;
+    background: var(--hi-orange);
+    color: var(--ink);
+    font-family: 'Saira Stencil One', sans-serif;
+    font-size: 9px;
+    letter-spacing: 0.05em;
+    border-bottom-left-radius: 6px;
+  }
+  .day.weekend { opacity: 0.45; }
+  .day-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-dim);
+    letter-spacing: 0.06em;
+  }
+  .day.today .day-name { color: var(--hi-orange); }
+  .day-temp {
+    font-family: 'Saira Stencil One', sans-serif;
+    font-size: 22px;
+    color: var(--text);
+    margin-top: 4px;
+    line-height: 1;
+    letter-spacing: 0.01em;
+  }
+  .day-cond {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-mid);
+    margin-top: 4px;
+  }
+  .day-task {
+    font-size: 11.5px;
+    color: var(--text);
+    margin-top: auto;
+    padding-top: 10px;
+    line-height: 1.4;
+  }
+  .day-task.warn { color: var(--hi-yellow); font-weight: 600; }
+  .day-task.danger { color: var(--caution); font-weight: 600; }
+  .day-task.done { color: var(--go); }
+
+  /* === STAT ROW === */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+    gap: 10px;
+    margin-bottom: 26px;
+  }
+  .stat {
+    position: relative;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    overflow: hidden;
+  }
+  .stat.alarm {
+    border-color: var(--caution);
+    background: linear-gradient(155deg, var(--paper) 0%, var(--caution-glow) 100%);
+  }
+  .stat.alarm::after {
+    /* Caution stripe corner */
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 56px; height: 56px;
+    background: repeating-linear-gradient(45deg,
+      var(--caution) 0,
+      var(--caution) 5px,
+      transparent 5px,
+      transparent 10px);
+    opacity: 0.15;
+    clip-path: polygon(100% 0, 100% 100%, 0 0);
+  }
+  .stat.warn {
+    border-color: var(--hi-yellow);
+    background: linear-gradient(155deg, var(--paper) 0%, var(--yellow-glow) 100%);
+  }
+  .stat-num {
+    font-family: 'Saira Stencil One', sans-serif;
+    font-size: 36px;
+    line-height: 1;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+  .stat.alarm .stat-num { color: var(--caution); }
+  .stat.warn .stat-num { color: var(--hi-yellow); }
+  .stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 6px;
+    line-height: 1.4;
+  }
+
+  /* === SECTION HEADERS === */
+  .section-head {
+    font-family: 'Saira Stencil One', sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--text-dim);
+    margin: 28px 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-head::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border: 2px solid currentColor;
+    transform: rotate(45deg);
+  }
+  .section-head::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--line-hi), transparent);
+  }
+  .section-head.urgent { color: var(--caution); }
+  .section-head.active { color: var(--info); }
+  .section-head.done { color: var(--text-dim); }
+
+  /* === CARDS === */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 12px;
+  }
+  .card {
+    position: relative;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 18px 18px;
+    transition: border-color 150ms, transform 150ms;
+    overflow: hidden;
+  }
+  .card:hover { border-color: var(--line-hi); }
+  .card::before {
+    /* status bar on the left edge */
+    content: '';
+    position: absolute;
+    left: 0; top: 14px; bottom: 14px;
+    width: 3px;
+    background: var(--line-hi);
+    border-radius: 0 3px 3px 0;
+  }
+  .card.urgent::before { background: var(--caution); box-shadow: 0 0 12px var(--caution); }
+  .card.warn::before { background: var(--hi-yellow); }
+  .card.active::before { background: var(--info); }
+  .card.done::before { background: var(--go); }
+  .card.idle::before { background: var(--text-dim); }
+  .card.done { opacity: 0.65; }
+
+  .card.urgent::after {
+    /* caution stripe top-left */
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 60px; height: 60px;
+    background: repeating-linear-gradient(45deg,
+      var(--caution) 0,
+      var(--caution) 4px,
+      transparent 4px,
+      transparent 8px);
+    opacity: 0.1;
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+    pointer-events: none;
+  }
+
+  .card-coord {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 4px;
+    padding-right: 80px;  /* room for coord */
+  }
+  .card-title {
+    font-family: 'Archivo', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+  .card-sub {
+    font-size: 12px;
+    color: var(--text-mid);
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+  .badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    margin-bottom: 8px;
+  }
+  .badge.urgent { background: var(--caution); color: white; }
+  .badge.warn { background: var(--hi-yellow); color: var(--ink); }
+  .badge.active { background: rgba(72,149,239,0.15); color: var(--info); border: 1px solid var(--info); }
+  .badge.done { background: var(--go); color: var(--ink); }
+  .badge.idle { background: var(--line); color: var(--text-mid); }
+
+  ul.todo {
+    list-style: none;
+    padding: 0;
+    margin: 6px 0 0;
+  }
+  ul.todo li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 13px;
+    color: var(--text);
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    min-height: 38px;
+  }
+  ul.todo li:last-child { border-bottom: 0; }
+  ul.todo li.done {
+    color: var(--text-dim);
+    text-decoration: line-through;
+    text-decoration-color: var(--text-dim);
+  }
+  ul.todo input[type=checkbox] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--line-hi);
+    border-radius: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 1px;
+    position: relative;
+    background: var(--ink-2);
+    transition: all 120ms;
+  }
+  ul.todo input[type=checkbox]:checked {
+    background: var(--hi-orange);
+    border-color: var(--hi-orange);
+  }
+  ul.todo input[type=checkbox]:checked::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 0px;
+    width: 5px;
+    height: 10px;
+    border: solid var(--ink);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  ul.todo label {
+    cursor: pointer;
+    flex: 1;
+    line-height: 1.45;
+    padding-top: 1px;
+  }
+  .todo-tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 1px 6px;
+    margin-left: 4px;
+    border-radius: 3px;
+    background: var(--line);
+    color: var(--text-mid);
+    vertical-align: 1px;
+  }
+  .todo-tag.danger { background: var(--caution); color: white; }
+  .todo-tag.warn { background: var(--hi-yellow); color: var(--ink); }
+
+  .card-meta {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--line);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+  .contact-tag {
+    display: inline-block;
+    background: var(--ink-2);
+    color: var(--text-mid);
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    margin-right: 4px;
+    margin-top: 3px;
+    border: 1px solid var(--line);
+  }
+  .file-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--info);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    background: rgba(72,149,239,0.08);
+    border-radius: 4px;
+    border: 1px solid rgba(72,149,239,0.25);
+    text-decoration: none;
+  }
+  a { color: var(--info); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-align: center;
+    letter-spacing: 0.04em;
+  }
+
+  /* === MOBILE TWEAKS === */
+  @media (max-width: 640px) {
+    main { padding: 0 12px 80px; }
+    header.brand { padding: 14px 12px 0; margin: 0 -12px; }
+    .week-strip {
+      grid-template-columns: repeat(7, 200px);
+      padding-bottom: 12px;
+    }
+    .stat-num { font-size: 30px; }
+    .card { padding: 14px 16px 16px; }
+    .card-header { padding-right: 70px; }
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  @media (min-width: 1024px) {
+    .grid.dense { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header class="brand">
+  <div class="brand-row">
+    <div class="brand-mark">
+      <div class="brand-glyph"></div>
+      <div>
+        <div class="brand-title">FIELD<span class="accent">·</span>OPS</div>
+        <div class="brand-sub">ROB CORDERO · RROFLLC + TQ</div>
+      </div>
+    </div>
+    <div class="live-pill">
+      <span class="live-dot"></span>
+      <span id="live-time">LIVE</span>
+    </div>
+  </div>
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-target="roofing" role="tab" aria-selected="true">
+      Roofing <span class="tab-count" id="count-roofing">—</span>
+    </button>
+    <button class="tab" data-target="personal" role="tab" aria-selected="false">
+      Non-Roofing <span class="tab-count" id="count-personal">—</span>
+    </button>
+  </div>
+</header>
+
+<main>
+
+<!-- ============================ ROOFING PANEL ============================ -->
+<section class="panel active" id="roofing">
+
+  <!-- Week strip — shared but displayed on this panel -->
+  <h2 class="section-head">Week 19 · May 11 — 17 · Orlando NWS</h2>
+  <div class="week-strip">
+    <div class="day past">
+      <div class="day-name">MON 05·11</div>
+      <div class="day-temp">86°/70°</div>
+      <div class="day-cond">⛅ Storms</div>
+      <div class="day-task done">✓ JPMC Metrowest REV1 sent</div>
+    </div>
+    <div class="day today">
+      <div class="day-name">TUE 05·12</div>
+      <div class="day-temp">85°/71°</div>
+      <div class="day-cond">⛈ Storms · 80%</div>
+      <div class="day-task done">✓ JPMC · Logo · Dashboard</div>
+    </div>
+    <div class="day">
+      <div class="day-name">WED 05·13</div>
+      <div class="day-temp">86°/70°</div>
+      <div class="day-cond">⛈ Rain · 60%</div>
+      <div class="day-task warn">⚡ Sparrow lightning prot. — rain risk</div>
+    </div>
+    <div class="day">
+      <div class="day-name">THU 05·14</div>
+      <div class="day-temp">88°/69°</div>
+      <div class="day-cond">☀ Sunny</div>
+      <div class="day-task">🏗 Sparrow — best day for roof work</div>
+    </div>
+    <div class="day">
+      <div class="day-name">FRI 05·15</div>
+      <div class="day-temp">89°/71°</div>
+      <div class="day-cond">☀ Sunny</div>
+      <div class="day-task danger">🚨 Lifetime Pines SSSP due</div>
+    </div>
+    <div class="day weekend">
+      <div class="day-name">SAT 05·16</div>
+      <div class="day-temp">90°/71°</div>
+      <div class="day-cond">☀ Sunny</div>
+      <div class="day-task">—</div>
+    </div>
+    <div class="day weekend">
+      <div class="day-name">SUN 05·17</div>
+      <div class="day-temp">91°/72°</div>
+      <div class="day-cond">☀ Sunny</div>
+      <div class="day-task">—</div>
+    </div>
+  </div>
+
+  <!-- Stat row -->
+  <div class="stat-row">
+    <div class="stat alarm">
+      <div class="stat-num">26</div>
+      <div class="stat-label">Overdue submittals<br>Tampa Mariner · CBG</div>
+    </div>
+    <div class="stat warn">
+      <div class="stat-num">3</div>
+      <div class="stat-label">Days until SSSP<br>Lifetime Pines</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">9</div>
+      <div class="stat-label">Active jobs<br>across Florida</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">5</div>
+      <div class="stat-label">RFIs resolved<br>this week</div>
+    </div>
+  </div>
+
+  <!-- URGENT -->
+  <h2 class="section-head urgent">Urgent — this week</h2>
+  <div class="grid">
+
+    <div class="card urgent" data-tab="roofing">
+      <div class="card-coord">28.05N · 82.46W</div>
+      <span class="badge urgent">26 overdue</span>
+      <div class="card-header"><div class="card-title">Tampa Mariner Street Apts</div></div>
+      <div class="card-sub">CBG Building Co. · Procore notification fired this morning</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="t1"><label for="t1">Pull overdue submittals list from Procore</label></li>
+        <li><input type="checkbox" id="t2"><label for="t2">Triage blockers vs paperwork with Zach</label></li>
+        <li><input type="checkbox" id="t3"><label for="t3">RFI #336 — Revised wall assemblies (Unit 708 to roof deck)</label></li>
+        <li><input type="checkbox" id="t4"><label for="t4">Reply Yaser Rezk with status update</label></li>
+      </ul>
+      <div class="card-meta">
+        <span><span class="contact-tag">Yaser Rezk</span><span class="contact-tag">Darren Thomas</span></span>
+        <span>05·12 07:08</span>
+      </div>
+    </div>
+
+    <div class="card urgent" data-tab="roofing">
+      <div class="card-coord">28.94N · 81.65W</div>
+      <span class="badge urgent">due fri 5·15</span>
+      <div class="card-header"><div class="card-title">Lifetime Pines / Seven Pines</div></div>
+      <div class="card-sub">SC 29805·017 · Doug forwarded 5/7: "complete safety portion by end of next week"</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="lp1"><label for="lp1">Site-Specific Safety Plan (SSSP) writeup<span class="todo-tag danger">DUE 5·15</span></label></li>
+        <li><input type="checkbox" id="lp2"><label for="lp2">Pull site hazards · fall protection · work-at-heights</label></li>
+        <li><input type="checkbox" id="lp3"><label for="lp3">Confirm crew list + competent-person letter</label></li>
+        <li><input type="checkbox" id="lp4"><label for="lp4">Submit to Wanda Thoms (Life Time)</label></li>
+        <li><input type="checkbox" id="lp5"><label for="lp5">CC Doug on send</label></li>
+      </ul>
+      <div class="card-meta">
+        <span><span class="contact-tag">Wanda Thoms</span><span class="contact-tag">Doug Robbins</span></span>
+        <span>05·07</span>
+      </div>
+    </div>
+
+    <div class="card urgent" data-tab="roofing">
+      <div class="card-coord">28.50N · 81.37W</div>
+      <span class="badge urgent">requested</span>
+      <div class="card-header"><div class="card-title">JPMC project book — 3 sites</div></div>
+      <div class="card-sub">Consolidated binder for JPMC Metrowest + Lady Lake + Orlando branch</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="jb1"><label for="jb1">Consolidate the 3 JPMC sub-projects</label></li>
+        <li><input type="checkbox" id="jb2"><label for="jb2">Pull drawings · submittals · RFIs per site</label></li>
+        <li><input type="checkbox" id="jb3"><label for="jb3">Decide format — PDF binder vs Notion vs printed</label></li>
+        <li><input type="checkbox" id="jb4"><label for="jb4">Cover page + per-job sections</label></li>
+      </ul>
+      <div class="card-meta">
+        <span><span class="contact-tag">Doug</span><span class="contact-tag">Carlos U.</span><span class="contact-tag">Josh H.</span></span>
+        <span>REV1 sent 5·11</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ACTIVE -->
+  <h2 class="section-head active">Active jobs · in motion</h2>
+  <div class="grid">
+
+    <div class="card active" data-tab="roofing">
+      <div class="card-coord">28.39N · 81.55W</div>
+      <span class="badge active">in progress</span>
+      <div class="card-header"><div class="card-title">Sparrow · Disney Fort Wilderness</div></div>
+      <div class="card-sub">Balfour Beatty GC · Mario's crew · weekly safety committee</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="s1" checked><label for="s1">Heat illness program submitted to Jay Williams (5/4)</label></li>
+        <li><input type="checkbox" id="s2"><label for="s2">Print drawing for Mario<span class="todo-tag warn">CREW</span></label></li>
+        <li><input type="checkbox" id="s3"><label for="s3">Calculate wood needed for bus stops / covered walkways<span class="todo-tag warn">ORDER</span></label></li>
+        <li><input type="checkbox" id="s4"><label for="s4">Order boots — large A-frames / flats<span class="todo-tag warn">ORDER</span></label></li>
+        <li><input type="checkbox" id="s5"><label for="s5">Call inspections — last two buildings (small A-frames)</label></li>
+        <li><input type="checkbox" id="s6" checked><label for="s6">Dumpsters confirmed</label></li>
+        <li><input type="checkbox" id="s7"><label for="s7">Cricket drawing — Candace (Contractor Metalworks) — Doug asked 5/11</label></li>
+        <li><input type="checkbox" id="s8"><label for="s8">Lightning protection Wed 5/13 — weather call needed</label></li>
+        <li><input type="checkbox" id="s9"><label for="s9">Weekly toolbox talks + JHAs — keep cadence</label></li>
+      </ul>
+      <div class="card-meta">
+        <span><span class="contact-tag">Jay Williams</span><span class="contact-tag">David Alvarado</span><span class="contact-tag">Mario M.</span></span>
+        <span>05·11</span>
+      </div>
+    </div>
+
+    <div class="card active" data-tab="roofing">
+      <div class="card-coord">28.53N · 81.46W</div>
+      <span class="badge active">submittal stage</span>
+      <div class="card-header"><div class="card-title">JPMC Metrowest · Marand</div></div>
+      <div class="card-sub">TPO Roof System Submittal REV1 sent 5/11 (incl. R-38 min insulation)</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="m1" checked><label for="m1">RFI #1 (R-25 vs R-38) — resolved R-38</label></li>
+        <li><input type="checkbox" id="m2" checked><label for="m2">RFI #2 (coverboard) — resolved</label></li>
+        <li><input type="checkbox" id="m3" checked><label for="m3">RFI #3 (mech-attached vs adhered) — mech-attached</label></li>
+        <li><input type="checkbox" id="m4" checked><label for="m4">REV1 submittal sent (5/11)</label></li>
+        <li><input type="checkbox" id="m5"><label for="m5">Confirm material delivery schedule</label></li>
+        <li><input type="checkbox" id="m6"><label for="m6">Confirm crew start date with Doug</label></li>
+        <li><input type="checkbox" id="m7"><label for="m7">Figure out wood blocking quantity for the downspout<span class="todo-tag warn">CALC</span></label></li>
+        <li><input type="checkbox" id="m8"><label for="m8">Get screw spec from Mario for wood blocking install<span class="todo-tag warn">SPEC</span></label></li>
+      </ul>
+      <div class="card-meta">
+        <span><span class="contact-tag">Carlos U.</span><span class="contact-tag">Zach R.</span></span>
+        <span>05·11</span>
+      </div>
+    </div>
+
+    <div class="card warn" data-tab="roofing">
+      <div class="card-coord">28.91N · 81.92W</div>
+      <span class="badge warn">RFI open</span>
+      <div class="card-header"><div class="card-title">JPMC Lady Lake · ABI</div></div>
+      <div class="card-sub">Roof RFI #1 (Fiber Reinforced Gypsum + WRB) — waiting on architect</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="ll1" checked><label for="ll1">RFI #1 sent to Josh Holden 4/28</label></li>
+        <li><input type="checkbox" id="ll2" checked><label for="ll2">Contract sent to Doug for DocuSign 5/1</label></li>
+        <li><input type="checkbox" id="ll3"><label for="ll3">Follow up Josh Holden if no response by 5/13</label></li>
+        <li><input type="checkbox" id="ll4"><label for="ll4">Prep submittals (waiting on RFI)</label></li>
+        <li><input type="checkbox" id="ll5"><label for="ll5">Confirm Doug signed DocuSign</label></li>
+      </ul>
+      <div class="card-meta">
+        <span><span class="contact-tag">Josh Holden</span><span class="contact-tag">Doug</span></span>
+        <span>05·05</span>
+      </div>
+    </div>
+
+    <div class="card active" data-tab="roofing">
+      <div class="card-coord">28.50N · 81.37W</div>
+      <span class="badge active">just assigned</span>
+      <div class="card-header"><div class="card-title">JPMC Orlando · small bank</div></div>
+      <div class="card-sub">Doug assigned 4/21 · 20 min from Sparrow · review drawings + submittals</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="jo1"><label for="jo1">Review drawings (project package)</label></li>
+        <li><input type="checkbox" id="jo2"><label for="jo2">Review approved submittals</label></li>
+        <li><input type="checkbox" id="jo3"><label for="jo3">Walk the site — combine with a Sparrow day</label></li>
+        <li><input type="checkbox" id="jo4"><label for="jo4">Identify any RFIs upfront</label></li>
+      </ul>
+      <div class="card-meta">
+        <span><span class="contact-tag">Doug</span></span>
+        <span>04·21</span>
+      </div>
+    </div>
+
+    <div class="card warn" data-tab="roofing">
+      <div class="card-coord">27.96N · 82.47W</div>
+      <span class="badge warn">submittals open</span>
+      <div class="card-header"><div class="card-title">Hyde Park Block F1 · Williams</div></div>
+      <div class="card-sub">SDS + SSSP submitted · still missing crane lift + SRI test reports</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="hp1"><label for="hp1">Crane lift plan (hard copy + digital)</label></li>
+        <li><input type="checkbox" id="hp2"><label for="hp2">075419 — Product test reports (SRI)</label></li>
+        <li><input type="checkbox" id="hp3"><label for="hp3">075419 — Metal flashing and trim product data</label></li>
+        <li><input type="checkbox" id="hp4"><label for="hp4">3 Fastener pull test reports</label></li>
+      </ul>
+      <div class="card-meta">
+        <span><span class="contact-tag">Brian Mueller</span><span class="contact-tag">J Kruse</span></span>
+        <span>04·15</span>
+      </div>
+    </div>
+
+    <div class="card active" data-tab="roofing">
+      <div class="card-coord">27.77N · 82.63W</div>
+      <span class="badge active">drawings updated</span>
+      <div class="card-header"><div class="card-title">Fairfield Avenue Apts · Kast</div></div>
+      <div class="card-sub">2 new drawings published 5/11 + 3 more on 4/21</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="fa1"><label for="fa1">Review the 2 newest drawings (5/11)</label></li>
+        <li><input type="checkbox" id="fa2"><label for="fa2">Reconcile against previous revision</label></li>
+        <li><input type="checkbox" id="fa3"><label for="fa3">Flag any spec changes that affect scope</label></li>
+      </ul>
+      <div class="card-meta">
+        <span><span class="contact-tag">Kast Construction</span></span>
+        <span>05·11</span>
+      </div>
+    </div>
+
+    <div class="card warn" data-tab="roofing">
+      <div class="card-coord">30.39N · 86.50W</div>
+      <span class="badge warn">577 dwgs unread</span>
+      <div class="card-header"><div class="card-title">The Arbor at Watercolor · Wichman</div></div>
+      <div class="card-sub">577 drawings published 4/16 — easy to lose track of this one</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="ar1"><label for="ar1">Decide if active scope or radar-only</label></li>
+        <li><input type="checkbox" id="ar2"><label for="ar2">If active — triage roofing-scope drawings only</label></li>
+        <li><input type="checkbox" id="ar3"><label for="ar3">If not — dismiss Procore notification</label></li>
+      </ul>
+      <div class="card-meta">
+        <span><span class="contact-tag">Wichman</span></span>
+        <span>04·16</span>
+      </div>
+    </div>
+
+    <div class="card active" data-tab="roofing">
+      <div class="card-coord">— · FL</div>
+      <span class="badge active">May event</span>
+      <div class="card-header"><div class="card-title">Builders Mutual — Fall Protection Stand-Down</div></div>
+      <div class="card-sub">National OSHA event · Giovanni doing Orlando + Disney visits</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="bm1"><label for="bm1">Coordinate with Giovanni Colon for site visits</label></li>
+        <li><input type="checkbox" id="bm2"><label for="bm2">Pick 1–2 crews to participate</label></li>
+        <li><input type="checkbox" id="bm3"><label for="bm3">Document the stand-down for OSHA file</label></li>
+      </ul>
+      <div class="card-meta">
+        <span><span class="contact-tag">Giovanni Colon</span></span>
+        <span>04·22</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- EQUIPMENT + INVENTORY ROLLING -->
+  <h2 class="section-head">🔧 Equipment + inventory · rolling tracker</h2>
+  <div class="grid">
+
+    <div class="card active" data-tab="roofing">
+      <div class="card-coord">SHOP · TAMPA</div>
+      <span class="badge active">in service</span>
+      <div class="card-header"><div class="card-title">Bearings machine + coil</div></div>
+      <div class="card-sub">Rolling equipment status — bearings machine for the metal coil work</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="eq1"><label for="eq1">Confirm current state — running / down / needs service</label></li>
+        <li><input type="checkbox" id="eq2"><label for="eq2">Coil inventory check — what's loaded / on hand</label></li>
+        <li><input type="checkbox" id="eq3"><label for="eq3">Schedule next maintenance / lube</label></li>
+      </ul>
+      <div class="card-meta">
+        <span><span class="contact-tag">Tampa Shop</span></span>
+        <span>Rolling</span>
+      </div>
+    </div>
+
+    <div class="card warn" data-tab="roofing">
+      <div class="card-coord">SHOP · INV</div>
+      <span class="badge warn">due update</span>
+      <div class="card-header"><div class="card-title">Spare / old inventory</div></div>
+      <div class="card-sub">Update count on spare parts + older stock at the Tampa shop</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="inv1"><label for="inv1">Walk the shop — count spares (fasteners, brackets, flashings, boots, membrane)</label></li>
+        <li><input type="checkbox" id="inv2"><label for="inv2">Flag anything that's been on shelf too long → use first or write off</label></li>
+        <li><input type="checkbox" id="inv3"><label for="inv3">Update inventory sheet / Drive tracker</label></li>
+      </ul>
+      <div class="card-meta">
+        <span><span class="contact-tag">Tampa Shop</span></span>
+        <span>—</span>
+      </div>
+    </div>
+
+    <div class="card active" data-tab="roofing">
+      <div class="card-coord">TOMORROW</div>
+      <span class="badge active">tomorrow visit</span>
+      <div class="card-header"><div class="card-title">Yovan check-in · coming out tomorrow</div></div>
+      <div class="card-sub">Yovan visiting jobsite tomorrow (Wed 5/13) — confirm time, scope, what he needs</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="yv1"><label for="yv1">Confirm arrival time with Yovan</label></li>
+        <li><input type="checkbox" id="yv2"><label for="yv2">Prep questions / walkthrough plan</label></li>
+        <li><input type="checkbox" id="yv3"><label for="yv3">Make sure Mario or someone is on site to meet him</label></li>
+      </ul>
+      <div class="card-meta">
+        <span><span class="contact-tag">Yovan</span></span>
+        <span>Wed 5·13</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PLAUD OPEN LOOPS -->
+  <h2 class="section-head warn">📞 Plaud open loops · last 48h (auto-pulled from your transcripts)</h2>
+  <div class="grid">
+
+    <div class="card warn" data-tab="roofing">
+      <div class="card-coord">5·08 · MIKE</div>
+      <span class="badge warn">stamp drawings + brackets</span>
+      <div class="card-header"><div class="card-title">Stamp drawings + bracket count · Mike</div></div>
+      <div class="card-sub">From the 5/8 call: Mike's company getting the stamp drawings — expected today or Monday. Bent bracket plate swap pending. Bracket count: 13 buildings (8 large A-frames + 5 small) · 9 chimneys.</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="pl1"><label for="pl1">Call Mike — confirm stamp drawings received today or Mon</label></li>
+        <li><input type="checkbox" id="pl2"><label for="pl2">Coordinate bent bracket swap (you have a spare on site)</label></li>
+        <li><input type="checkbox" id="pl3"><label for="pl3">Confirm fastener type + clamp height spec from drawings</label></li>
+      </ul>
+      <div class="card-meta">
+        <span><span class="contact-tag">Mike</span></span>
+        <span>Plaud 5·08</span>
+      </div>
+    </div>
+
+    <div class="card warn" data-tab="roofing">
+      <div class="card-coord">5·08 · BLDG 4</div>
+      <span class="badge warn">cricket mismatch</span>
+      <div class="card-header"><div class="card-title">Cricket — Building 4 (small A-frame)</div></div>
+      <div class="card-sub">Mario flagged 5/8: cricket on Bldg 4 "not coming in" / dimensions different. May need redo. Tied to Candace's cricket drawing request (Doug emailed 5/11).</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="pl4"><label for="pl4">Walk Building 4 with chimney guy — measure actual cricket dim</label></li>
+        <li><input type="checkbox" id="pl5"><label for="pl5">Reconcile with Candace's new cricket drawing (multi-location measurements)</label></li>
+        <li><input type="checkbox" id="pl6"><label for="pl6">If redo needed — order from Candace at Contractor Metalworks</label></li>
+      </ul>
+      <div class="card-meta">
+        <span><span class="contact-tag">Mario M.</span><span class="contact-tag">Candace (CMW)</span></span>
+        <span>Plaud 5·08</span>
+      </div>
+    </div>
+
+    <div class="card urgent" data-tab="roofing">
+      <div class="card-coord">5·07 · PAYROLL</div>
+      <span class="badge urgent">brothers shorted</span>
+      <div class="card-header"><div class="card-title">Payroll discrepancy · 2 ex-brothers</div></div>
+      <div class="card-sub">5/7 call: ex-employees say they worked 40 hrs each, got paid 10.5 each across 4 checks. Asked about cash conversion or re-deposit. Direct deposit was set up but never activated by Doug.</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="pl7"><label for="pl7">Ask Doug in the morning about the 40 vs 10.5 hr discrepancy</label></li>
+        <li><input type="checkbox" id="pl8"><label for="pl8">Check direct deposit setup (worker said it was filled out but never activated)</label></li>
+        <li><input type="checkbox" id="pl9"><label for="pl9">They will call you ~9am — be ready with Doug's answer</label></li>
+      </ul>
+      <div class="card-meta">
+        <span><span class="contact-tag">Doug</span><span class="contact-tag">Ex-employee + brother</span></span>
+        <span>Plaud 5·07</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- VEST ORDER -->
+  <h2 class="section-head">🦺 Safety vest order — crew of 10</h2>
+  <div class="grid">
+    <div class="card warn" data-tab="roofing">
+      <div class="card-coord">PRE-ORDER</div>
+      <span class="badge warn">font → order</span>
+      <div class="card-header"><div class="card-title">Custom RROFLLC vests · 10 pack</div></div>
+      <div class="card-sub">ANSI Class 2 mesh lime · chest + back · Amazon BeautyWill / Shmimy / AYKRM</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="v1" checked><label for="v1">Logo received from Doug (5/11)</label></li>
+        <li><input type="checkbox" id="v2" checked><label for="v2">Background stripped — transparent PNG</label></li>
+        <li><input type="checkbox" id="v3" checked><label for="v3">Generated 6 alt fonts for wordmark</label></li>
+        <li><input type="checkbox" id="v4"><label for="v4">Pick a font (rec: DIN Condensed Bold)</label></li>
+        <li><input type="checkbox" id="v5"><label for="v5">Get size run from Mario</label></li>
+        <li><input type="checkbox" id="v6"><label for="v6">Place order on Amazon (BeautyWill or Shmimy)</label></li>
+        <li><input type="checkbox" id="v7"><label for="v7">Bridge plan — plain Class 2 from Lowes until branded arrive</label></li>
+      </ul>
+      <div class="card-meta">
+        <span class="file-chip">~/Desktop/SIDEPROJECTS/Claude/clients/rrofllc/branding/print/</span>
+        <span>$80–150 / 10</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DRIVE -->
+  <h2 class="section-head">📎 Drive trackers · rob.rrofllc</h2>
+  <div class="grid">
+
+    <div class="card active" data-tab="roofing">
+      <div class="card-coord">SHEETS</div>
+      <span class="badge active">master</span>
+      <div class="card-header"><div class="card-title">RROFLLC_Safety_Tracker</div></div>
+      <div class="card-sub">Toolbox talks · Sparrow JHAs · weekly audits · BB submissions · Sparrow project ref</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="dr1"><label for="dr1">Log this week's toolbox talk (wk ending 5/15)</label></li>
+        <li><input type="checkbox" id="dr2"><label for="dr2">Add daily JHA rows for Sparrow days this week</label></li>
+        <li><input type="checkbox" id="dr3"><label for="dr3">Verify 4/24 audit resubmit was accepted by Jay</label></li>
+      </ul>
+      <div class="card-meta">
+        <a class="file-chip" href="https://docs.google.com/spreadsheets/d/15Kh2XnyzP5O97Y2t00FMRIjMPlwShflv8ddWcbXPACk/edit" target="_blank">↗ Open in Sheets</a>
+        <span>rob.rrofllc</span>
+      </div>
+    </div>
+
+    <div class="card active" data-tab="roofing">
+      <div class="card-coord">XLSX</div>
+      <span class="badge active">site tracker</span>
+      <div class="card-header"><div class="card-title">RROF_Site_Tracker.xlsx</div></div>
+      <div class="card-sub">Site-level workbook · 2 copies exist · de-dup recommended</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="st1"><label for="st1">Pick canonical copy, archive the dupe</label></li>
+        <li><input type="checkbox" id="st2"><label for="st2">Sync status from this dashboard back into sheet</label></li>
+      </ul>
+      <div class="card-meta">
+        <a class="file-chip" href="https://drive.google.com/file/d/1xLKzysJMlzSxLRwlIAksu24lDNsUBp8V/view" target="_blank">↗ Subfolder</a>
+        <a class="file-chip" href="https://drive.google.com/file/d/1SXKfa-xKExbCRi79uqDXb-Fa9GUUp5jN/view" target="_blank">↗ Root</a>
+      </div>
+    </div>
+
+  </div>
+
+</section>
+
+<!-- ============================ PERSONAL PANEL ============================ -->
+<section class="panel" id="personal">
+
+  <!-- Week strip on personal — slimmer focus -->
+  <h2 class="section-head">Week 19 · May 11 — 17</h2>
+  <div class="week-strip">
+    <div class="day past">
+      <div class="day-name">MON 05·11</div>
+      <div class="day-temp">86°</div>
+      <div class="day-cond">⛅</div>
+      <div class="day-task done">✓ Orlando rental PDFs</div>
+    </div>
+    <div class="day today">
+      <div class="day-name">TUE 05·12</div>
+      <div class="day-temp">85°</div>
+      <div class="day-cond">⛈ 80%</div>
+      <div class="day-task done">✓ Dashboard live</div>
+    </div>
+    <div class="day">
+      <div class="day-name">WED 05·13</div>
+      <div class="day-temp">86°</div>
+      <div class="day-cond">⛈ 60%</div>
+      <div class="day-task">—</div>
+    </div>
+    <div class="day">
+      <div class="day-name">THU 05·14</div>
+      <div class="day-temp">88°</div>
+      <div class="day-cond">☀</div>
+      <div class="day-task">—</div>
+    </div>
+    <div class="day">
+      <div class="day-name">FRI 05·15</div>
+      <div class="day-temp">89°</div>
+      <div class="day-cond">☀</div>
+      <div class="day-task">—</div>
+    </div>
+    <div class="day weekend">
+      <div class="day-name">SAT 05·16</div>
+      <div class="day-temp">90°</div>
+      <div class="day-cond">☀</div>
+      <div class="day-task">—</div>
+    </div>
+    <div class="day weekend">
+      <div class="day-name">SUN 05·17</div>
+      <div class="day-temp">91°</div>
+      <div class="day-cond">☀</div>
+      <div class="day-task">—</div>
+    </div>
+  </div>
+
+  <!-- HOUSING -->
+  <h2 class="section-head">🏠 Orlando housing search</h2>
+  <div class="grid">
+
+    <div class="card done" data-tab="personal">
+      <div class="card-coord">25 PAGES · 10MB</div>
+      <span class="badge done">delivered</span>
+      <div class="card-header"><div class="card-title">Orlando Airbnb shortlist PDF</div></div>
+      <div class="card-sub">24 listings · 4+ BR · Jun 1 → Jul 1 monthly · sorted low→high · maps + photos</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="ab1" checked><label for="ab1">Scrape Airbnb LBV 4BR monthly</label></li>
+        <li><input type="checkbox" id="ab2" checked><label for="ab2">Build presentation-grade PDF</label></li>
+        <li><input type="checkbox" id="ab3"><label for="ab3">Set budget ceiling to narrow shortlist</label></li>
+        <li><input type="checkbox" id="ab4"><label for="ab4">Pick 3 finalists · reach out to hosts</label></li>
+      </ul>
+      <div class="card-meta">
+        <span class="file-chip">~/Desktop/Orlando-Airbnbs-Near-3780-World-Drive.pdf</span>
+        <span>$2,857 — $17,586</span>
+      </div>
+    </div>
+
+    <div class="card done" data-tab="personal">
+      <div class="card-coord">12 PAGES · 5MB</div>
+      <span class="badge done">delivered</span>
+      <div class="card-header"><div class="card-title">Orlando VRBO shortlist PDF</div></div>
+      <div class="card-sub">11 listings · 3 true 4-BR + 8 comparables · neighborhood-approx maps</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="vr1" checked><label for="vr1">Scrape VRBO LBV monthly</label></li>
+        <li><input type="checkbox" id="vr2" checked><label for="vr2">Build PDF with inventory caveat</label></li>
+      </ul>
+      <div class="card-meta">
+        <span class="file-chip">~/Desktop/Orlando-VRBO-Near-3780-World-Drive.pdf</span>
+        <span>$2,146 — $3,083</span>
+      </div>
+    </div>
+
+    <div class="card warn" data-tab="personal">
+      <div class="card-coord">BLOCKED</div>
+      <span class="badge warn">needs login</span>
+      <div class="card-header"><div class="card-title">FB Marketplace rentals</div></div>
+      <div class="card-sub">Requires logged-in cookies for the listing view</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="fb1"><label for="fb1">Run /setup-browser-cookies to import FB session</label></li>
+        <li><input type="checkbox" id="fb2"><label for="fb2">Re-run scrape with cookies · build PDF same format</label></li>
+      </ul>
+      <div class="card-meta">
+        <span><span class="contact-tag">Needs Chrome cookies</span></span>
+        <span>—</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TECH QUEST -->
+  <h2 class="section-head">🛠 Tech Quest LLC · platform</h2>
+  <div class="grid">
+
+    <div class="card active" data-tab="personal">
+      <div class="card-coord">LIVE</div>
+      <span class="badge active">in production</span>
+      <div class="card-header"><div class="card-title">TradeVerify</div></div>
+      <div class="card-sub">tradeverify.co · field-notes / voice-to-project pipeline · VPS hosted</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="tv1"><label for="tv1">Sparrow project page — daily ops strip</label></li>
+        <li><input type="checkbox" id="tv2"><label for="tv2">Inventory tab — phase 2 features</label></li>
+        <li><input type="checkbox" id="tv3"><label for="tv3">Voice-to-project ingestion improvements</label></li>
+      </ul>
+      <div class="card-meta">
+        <span><span class="contact-tag">VPS</span></span>
+        <span>Phase 2-4</span>
+      </div>
+    </div>
+
+    <div class="card idle" data-tab="personal">
+      <div class="card-coord">VISION</div>
+      <span class="badge idle">on hold</span>
+      <div class="card-header"><div class="card-title">ProCrew</div></div>
+      <div class="card-sub">Construction ops platform · vision stage · no active build right now</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="pc1"><label for="pc1">Capture vision doc when bandwidth opens</label></li>
+      </ul>
+      <div class="card-meta">
+        <span>—</span><span>On hold</span>
+      </div>
+    </div>
+
+    <div class="card done" data-tab="personal">
+      <div class="card-coord">SKILL</div>
+      <span class="badge done">installed</span>
+      <div class="card-header"><div class="card-title">rental-report skill (today)</div></div>
+      <div class="card-sub">Scrape rental site → per-listing PDF with maps · auto-loads next ask</div>
+      <ul class="todo">
+        <li><input type="checkbox" id="rs1" checked><label for="rs1">SKILL.md + scripts + references written</label></li>
+        <li><input type="checkbox" id="rs2" checked><label for="rs2">Registered in available skills list</label></li>
+      </ul>
+      <div class="card-meta">
+        <span class="file-chip">~/.claude/skills/rental-report/</span>
+        <span>—</span>
+      </div>
+    </div>
+
+  </div>
+
+</section>
+
+<footer>
+  AUTO-GENERATED 2026-05-12 · GMAIL + DRIVE (rob.rrofllc) + NWS ORLANDO<br>
+  REFRESH: "REBUILD THE OPS DASHBOARD" · CHECKBOX STATE PERSISTS PER BROWSER
+</footer>
+
+</main>
+
+<script>
+  // === TAB SWITCHING ===
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.panel');
+  const lastTab = localStorage.getItem('rrofllc-dash-tab') || 'roofing';
+
+  function switchTab(target) {
+    tabs.forEach(t => {
+      const isActive = t.dataset.target === target;
+      t.classList.toggle('active', isActive);
+      t.setAttribute('aria-selected', isActive);
+    });
+    panels.forEach(p => {
+      p.classList.toggle('active', p.id === target);
+    });
+    localStorage.setItem('rrofllc-dash-tab', target);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  tabs.forEach(t => t.addEventListener('click', () => switchTab(t.dataset.target)));
+  switchTab(lastTab);
+
+  // === COUNT OPEN TODOS PER TAB ===
+  function countOpen() {
+    ['roofing', 'personal'].forEach(tab => {
+      const cards = document.querySelectorAll(`.card[data-tab="${tab}"]`);
+      let open = 0, total = 0;
+      cards.forEach(c => {
+        c.querySelectorAll('input[type=checkbox]').forEach(cb => {
+          total++;
+          if (!cb.checked) open++;
+        });
+      });
+      const el = document.getElementById('count-' + tab);
+      if (el) el.textContent = open + '/' + total;
+    });
+  }
+
+  // === CHECKBOX PERSISTENCE ===
+  document.querySelectorAll('input[type=checkbox]').forEach(cb => {
+    const key = 'rrofllc-dash-' + cb.id;
+    const saved = localStorage.getItem(key);
+    if (saved !== null) cb.checked = saved === '1';
+    const li = cb.closest('li');
+    if (li) li.classList.toggle('done', cb.checked);
+    cb.addEventListener('change', () => {
+      localStorage.setItem(key, cb.checked ? '1' : '0');
+      if (li) li.classList.toggle('done', cb.checked);
+      countOpen();
+    });
+  });
+  countOpen();
+
+  // === LIVE CLOCK ===
+  function tick() {
+    const d = new Date();
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    const dayOfYear = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86400000);
+    document.getElementById('live-time').textContent = `${hh}:${mm} · D${dayOfYear}`;
+  }
+  tick();
+  setInterval(tick, 30000);
+</script>
+
+</body>
+</html>
